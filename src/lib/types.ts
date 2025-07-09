@@ -1,16 +1,19 @@
 export interface Product {
   id: string;
   name: string;
-  volume: number; // in cubic units
+  description: string;
+  volume: number;
   popularityScore: number;
 }
 
 export interface Cell {
-  id: string; // "level-row-col"
+  id: string;
+  name: string;
   level: number;
   row: number;
   column: number;
   productId: string | null;
+  productIds: string[]; // Keep this to know all products initially in the cell
 }
 
 export interface WarehouseLayout {
@@ -24,5 +27,3 @@ export interface WarehouseLayout {
 export interface AppSettings {
   chainLength: number;
 }
-
-export type PopularityFormula = (product: Product) => number;
