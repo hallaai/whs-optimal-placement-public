@@ -169,6 +169,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
       perfectTargetId: perfectTargetCell?.id || null 
     });
     setSelectedCell(null);
+    setSuggestedCellId(null);
   };
 
   const cancelMove = () => {
