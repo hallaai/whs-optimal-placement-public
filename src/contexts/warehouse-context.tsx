@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -29,6 +30,7 @@ const populateInitialWarehouse = (warehouse: WarehouseLayout, products: Product[
 // --- Context Definition ---
 interface WarehouseContextType {
   warehouse: WarehouseLayout | null;
+  cells: Cell[];
   products: Product[];
   settings: AppSettings;
   selectedCell: Cell | null;
@@ -160,6 +162,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     warehouse,
+    cells: warehouse?.cells ?? [],
     products,
     settings,
     selectedCell,
@@ -187,3 +190,4 @@ export const useWarehouse = () => {
   }
   return context;
 };
+
