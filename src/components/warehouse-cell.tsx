@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -6,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { Cell, Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Package } from 'lucide-react';
+import { Package, Star } from 'lucide-react';
 
 interface WarehouseCellProps {
   cell: Cell;
@@ -51,6 +52,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
   const moveTargetInfo = movingProduct?.possibleTargets.find(t => t.id === cell.id);
   const isMoveTarget = !!moveTargetInfo;
   const isMoveOrigin = movingProduct?.fromCell.id === cell.id;
+  const isPerfectMoveTarget = movingProduct?.perfectTargetId === cell.id;
 
 
   const handleClick = () => {
@@ -63,8 +65,11 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
 
   let ringClass = '';
   let bgClass = '';
+  let animationClass = '';
+
   if (isMoveTarget) {
-      ringClass = 'ring-2 ring-offset-2 z-10 animation-flash';
+      animationClass = 'animation-flash';
+      ringClass = 'ring-2 ring-offset-2 z-10';
       switch (moveTargetInfo.zone) {
           case 1: ringClass += ' ring-blue-500'; bgClass = 'bg-blue-100 dark:bg-blue-900/50'; break;
           case 2: ringClass += ' ring-orange-500'; bgClass = 'bg-orange-100 dark:bg-orange-900/50'; break;
@@ -75,8 +80,12 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
   } else if (isSelected && !movingProduct) {
       ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
   } else if (isSuggested) {
-      ringClass = "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105 animation-flash";
+      ringClass = "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105";
+      animationClass = 'animation-flash'
   }
+
+  const canBeClicked = isMoveTarget || !movingProduct;
+  const isDimmed = movingProduct && !isMoveTarget && !isMoveOrigin && !isPerfectMoveTarget;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -88,11 +97,13 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
           >
             <div
               className={cn(
-                "w-full h-full rounded-sm flex items-center justify-center cursor-pointer transition-all duration-200",
-                "hover:ring-2 hover:ring-offset-2 hover:ring-accent hover:z-10",
+                "w-full h-full rounded-sm flex items-center justify-center transition-all duration-200",
+                canBeClicked && "cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-accent hover:z-10",
+                !canBeClicked && "cursor-not-allowed",
+                isDimmed && "opacity-50",
                 ringClass,
                 bgClass,
-                !isMoveTarget && !isMoveOrigin && movingProduct && "opacity-50 cursor-not-allowed"
+                animationClass
               )}
               style={{ backgroundColor: !bgClass ? bgColor : undefined }}
             >
@@ -102,6 +113,11 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
                 style={{ transform: `scaleY(${fillPercentage})`, transformOrigin: 'bottom' }}
               />
             </div>
+            {isPerfectMoveTarget && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    <Star className="h-2/3 w-2/3 text-yellow-400/80 fill-yellow-300/50" strokeWidth={1.5} />
+                </div>
+            )}
           </div>
         </TooltipTrigger>
         <TooltipContent>
@@ -115,6 +131,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             ) : (
               <p>Empty</p>
             )}
+            {isPerfectMoveTarget && <p className="font-bold text-yellow-500">Optimal Location</p>}
             {moveTargetInfo && <p className="font-bold text-blue-600 dark:text-blue-400">Zone {moveTargetInfo.zone} Target</p>}
           </div>
         </TooltipContent>
