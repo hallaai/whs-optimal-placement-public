@@ -93,27 +93,45 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const findOptimalPlacement = (product: Product, columnConstraint: number | null = null): Cell | null => {
     if (!warehouse) return null;
     
-    let candidateCells = warehouse.cells;
+    // Prioritize empty cells first
+    let candidateCells = warehouse.cells.filter(c => c.productId === null || c.productId === product.id);
+
+    // If no empty cells, consider all cells
+    if (candidateCells.length === 0) {
+      candidateCells = warehouse.cells;
+    }
+
     if (columnConstraint !== null) {
-      candidateCells = warehouse.cells.filter(c => c.column === columnConstraint);
+      // For moves, filter by the specified column
+      candidateCells = candidateCells.filter(c => c.column === columnConstraint);
+    }
+    
+    // If no cells match the column constraint, fall back to all cells to find a target.
+    // This can happen if the entire column is full of non-matching products.
+    if (candidateCells.length === 0) {
+      candidateCells = warehouse.cells.filter(c => c.productId === null || c.productId === product.id);
+       if (candidateCells.length === 0) {
+         candidateCells = warehouse.cells;
+       }
     }
     
     return candidateCells
       .slice()
       .sort((a, b) => {
-        const volumeScore = (product.volume / warehouse.cellCapacity);
-        const targetRow = (1 - volumeScore) * (warehouse.rows - 1);
+        // Higher volume should have a lower row number (closer to gates)
+        const targetRowA = (1 - (product.volume / warehouse.cellCapacity)) * (warehouse.rows - 1);
+        const targetRowB = (1 - (product.volume / warehouse.cellCapacity)) * (warehouse.rows - 1);
+
+        const aIsOccupied = a.productId !== null && a.productId !== product.id;
+        const bIsOccupied = b.productId !== null && b.productId !== product.id;
         
-        const aRowDistance = Math.abs(a.row - targetRow);
-        const bRowDistance = Math.abs(b.row - targetRow);
+        // Heavily penalize occupied cells
+        const occupiedPenaltyA = aIsOccupied ? 100000 : 0;
+        const occupiedPenaltyB = bIsOccupied ? 100000 : 0;
         
-        let scoreA = (aRowDistance * 1000) + (a.level * 100) + a.column;
-        let scoreB = (bRowDistance * 1000) + (b.level * 100) + b.column;
-        
-        if (columnConstraint === null) {
-          if (a.productId !== null && a.productId !== product.id) scoreA += 100000;
-          if (b.productId !== null && b.productId !== product.id) scoreB += 100000;
-        }
+        // Score is a combination of row distance, level, and column (lower is better for all)
+        const scoreA = (Math.abs(a.row - targetRowA) * 1000) + (a.level * 100) + a.column + occupiedPenaltyA;
+        const scoreB = (Math.abs(b.row - targetRowB) * 1000) + (b.level * 100) + b.column + occupiedPenaltyB;
 
         return scoreA - scoreB;
       })[0] || null;
@@ -157,15 +175,17 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
         return;
     }
 
-    // Now, find all empty cells in the SAME ROW as the perfect target cell.
-    const emptyCellsInTargetRow = warehouse.cells.filter(c => c.productId === null && c.row === perfectTargetCell.row);
+    // Now, find all empty cells in the warehouse
+    const emptyCells = warehouse.cells.filter(c => c.productId === null);
 
     const calculateDistance = (cellA: Cell, cellB: Cell) => {
-      // Distance is column difference within the same row.
-      return Math.abs(cellA.column - cellB.column);
+      // Euclidean distance
+      const rowDiff = cellA.row - cellB.row;
+      const colDiff = cellA.column - cellB.column;
+      return Math.sqrt(rowDiff * rowDiff + colDiff * colDiff);
     };
 
-    const targets: MoveTarget[] = emptyCellsInTargetRow.map(cell => {
+    const targets: MoveTarget[] = emptyCells.map(cell => {
       const distance = calculateDistance(cell, perfectTargetCell);
       let zone: MoveTarget['zone'] = 0;
       if (distance <= settings.distanceZone1) zone = 1;
