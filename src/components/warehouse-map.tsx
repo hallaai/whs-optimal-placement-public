@@ -5,7 +5,7 @@ import { useWarehouse } from '@/contexts/warehouse-context';
 import { WarehouseCell } from './warehouse-cell';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers } from 'lucide-react';
+import { Layers, Truck } from 'lucide-react';
 
 export function WarehouseMap() {
   const { warehouse } = useWarehouse();
@@ -40,7 +40,7 @@ export function WarehouseMap() {
             ))}
           </TabsList>
         </div>
-        <div className="flex-1 overflow-auto bg-muted/30 p-4 rounded-lg border">
+        <div className="flex-1 overflow-auto bg-muted/30 p-4 rounded-lg border flex flex-col justify-between">
           {Array.from({ length: warehouse.levels }).map((_, i) => (
             <TabsContent key={i} value={`level-${i}`} className="mt-0 h-full">
               <div 
@@ -53,6 +53,17 @@ export function WarehouseMap() {
               </div>
             </TabsContent>
           ))}
+        </div>
+        <div className="mt-4 pt-4 border-t">
+          <h3 className="text-sm font-semibold text-muted-foreground text-center mb-2">LOADING GATES</h3>
+          <div className="flex justify-around items-center bg-gray-200 dark:bg-gray-800 p-2 rounded-md">
+            {Array.from({length: Math.min(warehouse.columns, 6)}).map((_, i) => (
+              <div key={`gate-${i}`} className="flex flex-col items-center gap-1 text-muted-foreground">
+                <Truck className="h-6 w-6"/>
+                <span className="text-xs font-mono">Gate {i + 1}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </Tabs>
     </div>

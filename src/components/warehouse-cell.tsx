@@ -48,11 +48,13 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
   const isSelected = selectedCell?.id === cell.id;
   const isSuggested = suggestedCellId === cell.id;
   const isMoveTarget = movingProduct?.possibleTargets.includes(cell.id) ?? false;
+  const isMoveOrigin = movingProduct?.fromCell.id === cell.id;
+
 
   const handleClick = () => {
     if (isMoveTarget) {
       executeMove(cell);
-    } else {
+    } else if (!movingProduct) {
       selectCell(cell);
     }
   };
@@ -69,10 +71,11 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
               className={cn(
                 "w-full h-full rounded-sm flex items-center justify-center cursor-pointer transition-all duration-200",
                 "hover:ring-2 hover:ring-offset-2 hover:ring-accent hover:z-10",
-                isSelected && "ring-2 ring-offset-2 ring-primary z-10 scale-105",
+                isSelected && !movingProduct && "ring-2 ring-offset-2 ring-primary z-10 scale-105",
                 isSuggested && "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105 animation-flash",
                 isMoveTarget && "ring-2 ring-offset-2 ring-green-500 z-10 animation-flash",
-                !isMoveTarget && movingProduct && "opacity-50 cursor-not-allowed"
+                isMoveOrigin && "ring-2 ring-offset-2 ring-blue-500 z-10 scale-105",
+                !isMoveTarget && !isMoveOrigin && movingProduct && "opacity-50 cursor-not-allowed"
               )}
               style={{ backgroundColor: isMoveTarget ? 'hsl(120, 40%, 90%)' : bgColor }}
             >

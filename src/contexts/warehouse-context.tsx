@@ -105,10 +105,16 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   
   const findOptimalPlacement = (productVolume: number): Cell | null => {
     if (!warehouse) return null;
-    // Simple algorithm: find the first empty cell on the lowest level, closest to the front.
+    // New algorithm: prioritize empty cells on the lowest level, closest to the front (row 0), for heavier/popular items.
+    // The "gates" are conceptually at row 0.
     return warehouse.cells
       .filter(c => c.productId === null)
-      .sort((a,b) => a.level - b.level || a.row - b.row || a.column - b.column)[0] || null;
+      .sort((a,b) => {
+        // Higher volume products should be closer to the ground and front
+        const scoreA = a.level + a.row + (a.column / warehouse.columns);
+        const scoreB = b.level + b.row + (b.column / warehouse.columns);
+        return scoreA - scoreB;
+      })[0] || null;
   };
 
   const addProduct = (name: string, volume: number) => {
@@ -190,4 +196,3 @@ export const useWarehouse = () => {
   }
   return context;
 };
-
