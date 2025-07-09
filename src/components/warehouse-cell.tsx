@@ -86,7 +86,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
   }
 
   const canBeClicked = isMoveTarget || !movingProduct;
-  const isDimmed = movingProduct && !isMoveTarget && !isMoveOrigin && !isPerfectTarget;
+  const isDimmed = movingProduct && !isMoveTarget && !isMoveOrigin;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -116,7 +116,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             </div>
             {isPerfectTarget && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <Star className="h-4/5 w-4/5 text-yellow-400/80 fill-yellow-300/50" strokeWidth={1} />
+                    <Star className="w-[90%] h-[90%] text-yellow-400/80 fill-yellow-300/50" strokeWidth={1} />
                 </div>
             )}
           </div>
