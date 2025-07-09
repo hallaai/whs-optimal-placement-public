@@ -116,7 +116,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             </div>
             {isPerfectTarget && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <Star className="w-[180%] h-[180%] text-yellow-400/80 fill-yellow-300/50" strokeWidth={1} />
+                    <Star className="w-[300%] h-[300%] text-yellow-400/80 fill-yellow-300/50" strokeWidth={0.5} />
                 </div>
             )}
           </div>
