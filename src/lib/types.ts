@@ -26,4 +26,12 @@ export interface WarehouseLayout {
 
 export interface AppSettings {
   chainLength: number;
+  distanceZone1: number;
+  distanceZone2: number;
+  distanceZone3: number;
+}
+
+export interface MoveTarget {
+  id: string;
+  zone: 1 | 2 | 3 | 0; // 0 means not a target
 }

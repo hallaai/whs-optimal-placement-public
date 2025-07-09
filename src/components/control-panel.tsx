@@ -62,7 +62,7 @@ export function ControlPanel() {
                         <Move className="h-5 w-5"/>
                         <span>Moving Product</span>
                     </CardTitle>
-                    <CardDescription>Select an empty green cell on the map to place the product.</CardDescription>
+                    <CardDescription>Select a flashing cell on the map to place the product. Blue is best.</CardDescription>
                 </CardHeader>
                  <CardContent>
                     <Button onClick={cancelMove} variant="destructive" className="w-full">
@@ -137,7 +137,7 @@ export function ControlPanel() {
                 <div className="flex items-center gap-2"><Settings className="h-5 w-5" /> Settings</div>
             </AccordionTrigger>
             <AccordionContent>
-               <div className="space-y-4 pt-2">
+               <div className="space-y-6 pt-2">
                   <div>
                     <Label>Chain Shift Length: {settings.chainLength}</Label>
                     <Slider
@@ -150,6 +150,35 @@ export function ControlPanel() {
                      <p className="text-xs text-muted-foreground mt-1">
                       Length=1 is a direct move. >1 shifts products in a chain.
                     </p>
+                  </div>
+                   <Separator />
+                   <div className="space-y-2">
+                     <h4 className="text-sm font-medium">Move Suggestion Zones</h4>
+                     <p className="text-xs text-muted-foreground">Set radii for move suggestions. (1-10)</p>
+                   </div>
+                   <div>
+                    <Label>Zone 1 (Blue): {settings.distanceZone1}</Label>
+                    <Slider
+                      value={[settings.distanceZone1]}
+                      onValueChange={(value) => setSettings({ ...settings, distanceZone1: value[0] })}
+                      min={1} max={10} step={1}
+                    />
+                  </div>
+                   <div>
+                    <Label>Zone 2 (Orange): {settings.distanceZone2}</Label>
+                    <Slider
+                      value={[settings.distanceZone2]}
+                      onValueChange={(value) => setSettings({ ...settings, distanceZone2: value[0] })}
+                      min={1} max={10} step={1}
+                    />
+                  </div>
+                   <div>
+                    <Label>Zone 3 (Gray): {settings.distanceZone3}</Label>
+                    <Slider
+                      value={[settings.distanceZone3]}
+                      onValueChange={(value) => setSettings({ ...settings, distanceZone3: value[0] })}
+                      min={1} max={10} step={1}
+                    />
                   </div>
                </div>
             </AccordionContent>

@@ -47,7 +47,9 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
   
   const isSelected = selectedCell?.id === cell.id;
   const isSuggested = suggestedCellId === cell.id;
-  const isMoveTarget = movingProduct?.possibleTargets.includes(cell.id) ?? false;
+
+  const moveTargetInfo = movingProduct?.possibleTargets.find(t => t.id === cell.id);
+  const isMoveTarget = !!moveTargetInfo;
   const isMoveOrigin = movingProduct?.fromCell.id === cell.id;
 
 
@@ -58,6 +60,23 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
       selectCell(cell);
     }
   };
+
+  let ringClass = '';
+  let bgClass = '';
+  if (isMoveTarget) {
+      ringClass = 'ring-2 ring-offset-2 z-10 animation-flash';
+      switch (moveTargetInfo.zone) {
+          case 1: ringClass += ' ring-blue-500'; bgClass = 'bg-blue-100 dark:bg-blue-900/50'; break;
+          case 2: ringClass += ' ring-orange-500'; bgClass = 'bg-orange-100 dark:bg-orange-900/50'; break;
+          case 3: ringClass += ' ring-gray-500'; bgClass = 'bg-gray-200 dark:bg-gray-700/50'; break;
+      }
+  } else if (isMoveOrigin) {
+      ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
+  } else if (isSelected && !movingProduct) {
+      ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
+  } else if (isSuggested) {
+      ringClass = "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105 animation-flash";
+  }
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -71,13 +90,11 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
               className={cn(
                 "w-full h-full rounded-sm flex items-center justify-center cursor-pointer transition-all duration-200",
                 "hover:ring-2 hover:ring-offset-2 hover:ring-accent hover:z-10",
-                isSelected && !movingProduct && "ring-2 ring-offset-2 ring-primary z-10 scale-105",
-                isSuggested && "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105 animation-flash",
-                isMoveTarget && "ring-2 ring-offset-2 ring-green-500 z-10 animation-flash",
-                isMoveOrigin && "ring-2 ring-offset-2 ring-blue-500 z-10 scale-105",
+                ringClass,
+                bgClass,
                 !isMoveTarget && !isMoveOrigin && movingProduct && "opacity-50 cursor-not-allowed"
               )}
-              style={{ backgroundColor: isMoveTarget ? 'hsl(120, 40%, 90%)' : bgColor }}
+              style={{ backgroundColor: !bgClass ? bgColor : undefined }}
             >
               {product && <Package className="h-4 w-4 md:h-5 md:h-5 text-black/50" />}
                <div
@@ -98,6 +115,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             ) : (
               <p>Empty</p>
             )}
+            {moveTargetInfo && <p className="font-bold text-blue-600 dark:text-blue-400">Zone {moveTargetInfo.zone} Target</p>}
           </div>
         </TooltipContent>
       </Tooltip>
