@@ -6,6 +6,7 @@ import { WarehouseCell } from './warehouse-cell';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Layers, Truck } from 'lucide-react';
+import { Cell } from '@/lib/types';
 
 export function WarehouseMap() {
   const { warehouse } = useWarehouse();
@@ -25,6 +26,17 @@ export function WarehouseMap() {
       </div>
     );
   }
+  
+  const getCellsForLevel = (level: number) => {
+    return warehouse.cells
+      .filter(cell => cell.level === level)
+      // Sort by row descending to place R1 at the bottom, then by column ascending
+      .sort((a, b) => {
+        if (a.row > b.row) return -1;
+        if (a.row < b.row) return 1;
+        return a.column - b.column;
+      });
+  };
 
   return (
     <div className="p-4 md:p-8 h-full flex flex-col">
@@ -47,9 +59,7 @@ export function WarehouseMap() {
                 className="grid gap-1.5 md:gap-2 h-full"
                 style={{ gridTemplateColumns: `repeat(${warehouse.columns}, minmax(0, 1fr))` }}
               >
-                {warehouse.cells
-                  .filter(cell => cell.level === i)
-                  .map(cell => <WarehouseCell key={cell.id} cell={cell} />)}
+                {getCellsForLevel(i).map(cell => <WarehouseCell key={cell.id} cell={cell} />)}
               </div>
             </TabsContent>
           ))}
