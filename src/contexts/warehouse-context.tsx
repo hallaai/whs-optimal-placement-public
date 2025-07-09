@@ -90,32 +90,30 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     setPerfectTargetId(null);
   };
   
-  const findOptimalPlacement = (product: Product): Cell | null => {
+  const findOptimalPlacement = (product: Product, columnConstraint: number | null = null): Cell | null => {
     if (!warehouse) return null;
     
-    // This simulates proximity to loading gates at the front (row 0)
-    return warehouse.cells
-      .slice() // Create a shallow copy to avoid mutating the original array
+    let candidateCells = warehouse.cells;
+    if (columnConstraint !== null) {
+      candidateCells = warehouse.cells.filter(c => c.column === columnConstraint);
+    }
+    
+    return candidateCells
+      .slice()
       .sort((a, b) => {
-        // Higher volume products should have lower row number (closer to gates).
-        const volumeScore = (product.volume / warehouse.cellCapacity); // 0 to 1
-        
-        // Lower row is better for high volume. TargetRow is the ideal row (can be a float).
-        // e.g., high vol (0.9) -> targetRow = (1 - 0.9) * (10 - 1) = 0.1 * 9 = 0.9 (so, row 0 or 1)
-        // e.g., low vol (0.1) -> targetRow = (1 - 0.1) * (10-1) = 0.9 * 9 = 8.1 (so, row 8 or 9)
+        const volumeScore = (product.volume / warehouse.cellCapacity);
         const targetRow = (1 - volumeScore) * (warehouse.rows - 1);
         
-        // Calculate how far each cell's row is from the ideal target row.
         const aRowDistance = Math.abs(a.row - targetRow);
         const bRowDistance = Math.abs(b.row - targetRow);
         
-        // Primary score is based on row distance. Then level, then column.
         let scoreA = (aRowDistance * 1000) + (a.level * 100) + a.column;
         let scoreB = (bRowDistance * 1000) + (b.level * 100) + b.column;
         
-        // Heavy penalty for occupied cells to push them to the end of the sort
-        if (a.productId !== null && a.productId !== product.id) scoreA += 100000;
-        if (b.productId !== null && b.productId !== product.id) scoreB += 100000;
+        if (columnConstraint === null) {
+          if (a.productId !== null && a.productId !== product.id) scoreA += 100000;
+          if (b.productId !== null && b.productId !== product.id) scoreB += 100000;
+        }
 
         return scoreA - scoreB;
       })[0] || null;
@@ -140,9 +138,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
         });
         setSelectedCell({ ...placement, productId: newProduct.id });
     } else {
-        // Still add product to list even if perfect spot is taken
         setProducts(prev => [...prev, newProduct]);
-        setSelectedCell(placement || null); // Select the occupied cell to show context
+        setSelectedCell(placement || null);
     }
   };
 
@@ -151,8 +148,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     const productToMove = getProductById(fromCell.productId);
     if (!productToMove) return;
 
-    // For moves, find the absolute best placement ANYWHERE in the warehouse.
-    const perfectTargetCell = findOptimalPlacement(productToMove);
+    // For moves, find the absolute best placement ANYWHERE in the same column.
+    const perfectTargetCell = findOptimalPlacement(productToMove, fromCell.column);
     setPerfectTargetId(perfectTargetCell?.id || null);
 
     if (!perfectTargetCell) {
@@ -164,8 +161,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     const emptyCellsInTargetRow = warehouse.cells.filter(c => c.productId === null && c.row === perfectTargetCell.row);
 
     const calculateDistance = (cellA: Cell, cellB: Cell) => {
-        // Since we are constrained to a row, distance is just column difference.
-        return Math.abs(cellA.column - cellB.column);
+      // Distance is column difference within the same row.
+      return Math.abs(cellA.column - cellB.column);
     };
 
     const targets: MoveTarget[] = emptyCellsInTargetRow.map(cell => {
@@ -196,7 +193,6 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     if (!movingProduct || !warehouse) return;
     const { fromCell } = movingProduct;
     
-    // Simple 1-to-1 move 
     setWarehouse(prev => {
       if (!prev) return null;
       const newCells = prev.cells.map(c => {
