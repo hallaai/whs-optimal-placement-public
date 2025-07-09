@@ -51,8 +51,8 @@ export function ControlPanel() {
 
   return (
     <div className="h-full bg-sidebar flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Controls</h2>
+      <div className="p-4 border-b lg:border-b-0">
+        <h2 className="text-lg font-semibold hidden lg:block">Controls</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {movingProduct ? (
@@ -148,7 +148,7 @@ export function ControlPanel() {
                       step={1}
                     />
                      <p className="text-xs text-muted-foreground mt-1">
-                      Length=1 is a direct move. &gt;1 shifts products in a chain.
+                      Length=1 is a direct move. >1 shifts products in a chain.
                     </p>
                   </div>
                </div>

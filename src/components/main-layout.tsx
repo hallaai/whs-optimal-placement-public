@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Presentation } from 'lucide-react';
 import { ControlPanel } from './control-panel';
 
@@ -28,8 +28,16 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <span className="sr-only">Open controls</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 p-0">
-                <ControlPanel />
+              <SheetContent side="right" className="w-80 p-0 flex flex-col">
+                <SheetHeader className="p-4 border-b">
+                  <SheetTitle>Controls</SheetTitle>
+                  <SheetDescription>
+                    Manage warehouse settings, add products, and move items.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto">
+                    <ControlPanel />
+                </div>
               </SheetContent>
             </Sheet>
           </div>
