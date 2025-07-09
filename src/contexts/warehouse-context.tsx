@@ -90,26 +90,20 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     setPerfectTargetId(null);
   };
   
-  const findOptimalPlacement = (product: Product, constrainToRow?: number): Cell | null => {
+  const findOptimalPlacement = (product: Product): Cell | null => {
     if (!warehouse) return null;
     
-    // Start with all cells
-    let availableCells = warehouse.cells.slice();
-    
-    // If a row is specified (for moving products), filter the cells for that row
-    if(constrainToRow !== undefined) {
-        availableCells = availableCells.filter(c => c.row === constrainToRow);
-    }
-    
     // This simulates proximity to loading gates at the front (row 0)
-    return availableCells
+    return warehouse.cells
+      .slice() // Create a shallow copy to avoid mutating the original array
       .sort((a, b) => {
         // Higher volume products should have lower row number (closer to gates).
-        const volumeScore = (product.volume / warehouse.cellCapacity) * warehouse.rows;
+        const volumeScore = (product.volume / warehouse.cellCapacity); // 0 to 1
         
-        // Lower is better.
-        // For high volume, targetRow is low. For low volume, targetRow is high.
-        const targetRow = warehouse.rows - volumeScore;
+        // Lower row is better for high volume. TargetRow is the ideal row (can be a float).
+        // e.g., high vol (0.9) -> targetRow = (1 - 0.9) * (10 - 1) = 0.1 * 9 = 0.9 (so, row 0 or 1)
+        // e.g., low vol (0.1) -> targetRow = (1 - 0.1) * (10-1) = 0.9 * 9 = 8.1 (so, row 8 or 9)
+        const targetRow = (1 - volumeScore) * (warehouse.rows - 1);
         
         // Calculate how far each cell's row is from the ideal target row.
         const aRowDistance = Math.abs(a.row - targetRow);
@@ -157,21 +151,24 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     const productToMove = getProductById(fromCell.productId);
     if (!productToMove) return;
 
-    // For moves, find the best placement *within the same row*.
-    const perfectTargetCell = findOptimalPlacement(productToMove, fromCell.row);
+    // For moves, find the absolute best placement ANYWHERE in the warehouse.
+    const perfectTargetCell = findOptimalPlacement(productToMove);
     setPerfectTargetId(perfectTargetCell?.id || null);
 
-    const emptyCells = warehouse.cells.filter(c => c.productId === null);
+    if (!perfectTargetCell) {
+        setMovingProduct({ fromCell, possibleTargets: [] });
+        return;
+    }
+
+    // Now, find all empty cells in the SAME ROW as the perfect target cell.
+    const emptyCellsInTargetRow = warehouse.cells.filter(c => c.productId === null && c.row === perfectTargetCell.row);
 
     const calculateDistance = (cellA: Cell, cellB: Cell) => {
-        return Math.sqrt(
-            Math.pow(cellA.column - cellB.column, 2) +
-            Math.pow(cellA.row - cellB.row, 2) +
-            Math.pow(cellA.level - cellB.level, 2)
-        );
+        // Since we are constrained to a row, distance is just column difference.
+        return Math.abs(cellA.column - cellB.column);
     };
 
-    const targets: MoveTarget[] = perfectTargetCell ? emptyCells.map(cell => {
+    const targets: MoveTarget[] = emptyCellsInTargetRow.map(cell => {
       const distance = calculateDistance(cell, perfectTargetCell);
       let zone: MoveTarget['zone'] = 0;
       if (distance <= settings.distanceZone1) zone = 1;
@@ -179,7 +176,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
       else if (distance <= settings.distanceZone3) zone = 3;
       
       return { id: cell.id, zone };
-    }).filter(t => t.zone > 0) : [];
+    }).filter(t => t.zone > 0);
 
     setMovingProduct({ 
       fromCell, 
