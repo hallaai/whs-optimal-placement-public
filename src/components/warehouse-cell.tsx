@@ -79,7 +79,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
       ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
   } else if (isSelected && !movingProduct) {
       ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
-  } else if (isPerfectTarget && !product) {
+  } else if (isPerfectTarget && !product && !movingProduct) {
       // Flash empty suggested cells for new products
       ringClass = "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105";
       animationClass = 'animation-flash';
@@ -116,7 +116,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             </div>
             {isPerfectTarget && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <Star className="h-2/3 w-2/3 text-yellow-400/80 fill-yellow-300/50" strokeWidth={1.5} />
+                    <Star className="h-4/5 w-4/5 text-yellow-400/80 fill-yellow-300/50" strokeWidth={1} />
                 </div>
             )}
           </div>

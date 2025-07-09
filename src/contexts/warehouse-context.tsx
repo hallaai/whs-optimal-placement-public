@@ -93,7 +93,9 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const findOptimalPlacement = (product: Product, constrainToRow?: number): Cell | null => {
     if (!warehouse) return null;
     
-    let availableCells = warehouse.cells;
+    // Start with all cells
+    let availableCells = warehouse.cells.slice();
+    
     // If a row is specified (for moving products), filter the cells for that row
     if(constrainToRow !== undefined) {
         availableCells = availableCells.filter(c => c.row === constrainToRow);
@@ -101,7 +103,6 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
 
     // This simulates proximity to loading gates at the front (row 0)
     return availableCells
-      .slice() // Create a copy to avoid mutating the original array
       .sort((a,b) => {
         // Base score: lower is better. Prioritize level, then row, then column.
         let scoreA = (a.level * 100) + (a.row * 10) + a.column;
@@ -109,13 +110,16 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
 
         // Bonus for higher volume products being closer to gates (lower row/level)
         // A higher volume gives a bigger bonus, making the score lower (better)
-        const volumeFactor = product.volume / warehouse.cellCapacity;
-        scoreA -= (warehouse.rows - a.row) * volumeFactor;
-        scoreB -= (warehouse.rows - b.row) * volumeFactor;
+        const volumeFactor = (product.volume / warehouse.cellCapacity) * 10; // amplified factor
+        scoreA -= ((warehouse.rows - a.row) * volumeFactor * 2); // Prioritize row heavily
+        scoreA -= ((warehouse.levels - a.level) * volumeFactor); // Then level
+
+        scoreB -= ((warehouse.rows - b.row) * volumeFactor * 2);
+        scoreB -= ((warehouse.levels - b.level) * volumeFactor);
 
         // Heavy penalty for occupied cells to push them to the end of the sort
-        if (a.productId !== null) scoreA += 10000;
-        if (b.productId !== null) scoreB += 10000;
+        if (a.productId !== null && a.productId !== product.id) scoreA += 10000;
+        if (b.productId !== null && b.productId !== product.id) scoreB += 10000;
 
         return scoreA - scoreB;
       })[0] || null;
@@ -124,13 +128,11 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const addProduct = (name: string, volume: number) => {
     const newProduct: Product = { id: uuidv4(), name, volume, popularityScore: Math.round(Math.random() * 100), description: `Volume: ${volume}` };
     
-    // Find the single best spot, regardless of if it's occupied.
     const placement = findOptimalPlacement(newProduct);
     
     if (placement) {
-        setPerfectTargetId(placement.id); // Highlight the perfect spot
+        setPerfectTargetId(placement.id);
         
-        // If the perfect spot is empty, place the product there.
         if (!placement.productId) {
             setProducts(prev => [...prev, newProduct]);
             setWarehouse(prev => {
@@ -141,12 +143,10 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
                 });
                 return { ...prev, cells: newCells };
             });
-            // Select the cell where the product was just placed.
             setSelectedCell({ ...placement, productId: newProduct.id });
         } else {
-            // If the perfect spot is taken, just suggest it and don't place the product.
-            setProducts(prev => [...prev, newProduct]); // Still add to product list
-            setSelectedCell(null); // Don't select any cell.
+            setProducts(prev => [...prev, newProduct]);
+            setSelectedCell(null);
         }
     }
   };
@@ -156,7 +156,6 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     const productToMove = getProductById(fromCell.productId);
     if (!productToMove) return;
 
-    // This is the "perfect" spot, constrained to the same row for moves.
     const perfectTargetCell = findOptimalPlacement(productToMove, fromCell.row);
     setPerfectTargetId(perfectTargetCell?.id || null);
 
