@@ -14,7 +14,8 @@ interface WarehouseContextType {
   settings: AppSettings;
   selectedCell: Cell | null;
   suggestedCellId: string | null;
-  movingProduct: { fromCell: Cell, possibleTargets: MoveTarget[], perfectTargetId: string | null } | null;
+  perfectTargetId: string | null;
+  movingProduct: { fromCell: Cell, possibleTargets: MoveTarget[] } | null;
   loading: boolean;
   error: Error | null;
   setSettings: (settings: AppSettings) => void;
@@ -40,7 +41,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   });
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
   const [suggestedCellId, setSuggestedCellId] = useState<string | null>(null);
-  const [movingProduct, setMovingProduct] = useState<{ fromCell: Cell, possibleTargets: MoveTarget[], perfectTargetId: string | null } | null>(null);
+  const [perfectTargetId, setPerfectTargetId] = useState<string | null>(null);
+  const [movingProduct, setMovingProduct] = useState<{ fromCell: Cell, possibleTargets: MoveTarget[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -85,30 +87,35 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     if (movingProduct) return; // Don't change selection during a move
     setSelectedCell(cell);
     setSuggestedCellId(null);
+    setPerfectTargetId(null);
   };
   
-  const findOptimalPlacement = (product: Product): Cell | null => {
+  const findOptimalPlacement = (product: Product, constrainToRow?: number): Cell | null => {
     if (!warehouse) return null;
-    const productVolume = product.volume;
+    
+    let availableCells = warehouse.cells;
+    // If a row is specified (for moving products), filter the cells for that row
+    if(constrainToRow !== undefined) {
+        availableCells = availableCells.filter(c => c.row === constrainToRow);
+    }
 
-    // Prioritize ground floor (level 0) and front rows (lower row index)
     // This simulates proximity to loading gates at the front (row 0)
-    return warehouse.cells
+    return availableCells
       .slice() // Create a copy to avoid mutating the original array
       .sort((a,b) => {
-        // Base score: lower is better
-        let scoreA = (a.level * 2) + a.row + (a.column / warehouse.columns);
-        let scoreB = (b.level * 2) + b.row + (b.column / warehouse.columns);
-        
-        // Volume Penalty: Higher volume products get a bonus for being in optimal spots
-        // We subtract this, so a larger volume results in a lower (better) score
-        const volumeBonus = (productVolume / warehouse.cellCapacity); 
-        scoreA -= volumeBonus * (warehouse.levels - a.level);
-        scoreB -= volumeBonus * (warehouse.levels - b.level);
-        
-        // Emptiness Priority: Empty cells are vastly preferable.
-        if (a.productId === null && b.productId !== null) return -1;
-        if (a.productId !== null && b.productId === null) return 1;
+        // Base score: lower is better. Prioritize level, then row, then column.
+        let scoreA = (a.level * 100) + (a.row * 10) + a.column;
+        let scoreB = (b.level * 100) + (b.row * 10) + b.column;
+
+        // Bonus for higher volume products being closer to gates (lower row/level)
+        // A higher volume gives a bigger bonus, making the score lower (better)
+        const volumeFactor = product.volume / warehouse.cellCapacity;
+        scoreA -= (warehouse.rows - a.row) * volumeFactor;
+        scoreB -= (warehouse.rows - b.row) * volumeFactor;
+
+        // Heavy penalty for occupied cells to push them to the end of the sort
+        if (a.productId !== null) scoreA += 10000;
+        if (b.productId !== null) scoreB += 10000;
 
         return scoreA - scoreB;
       })[0] || null;
@@ -116,22 +123,31 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
 
   const addProduct = (name: string, volume: number) => {
     const newProduct: Product = { id: uuidv4(), name, volume, popularityScore: Math.round(Math.random() * 100), description: `Volume: ${volume}` };
-    setProducts(prev => [...prev, newProduct]);
+    
+    // Find the single best spot, regardless of if it's occupied.
     const placement = findOptimalPlacement(newProduct);
-    if(placement && !placement.productId) { // Only place if the optimal spot is empty
-      setWarehouse(prev => {
-        if (!prev) return null;
-        const newCells = prev.cells.map(c => {
-            if (c.id === placement.id) return { ...c, productId: newProduct.id };
-            return c;
-        });
-        return { ...prev, cells: newCells };
-      });
-      setSuggestedCellId(placement.id);
-      setSelectedCell({ ...placement, productId: newProduct.id });
-    } else if (placement) { // If optimal spot is taken, just suggest it
-      setSuggestedCellId(placement.id);
-      setSelectedCell(null); // Don't select anything as no action was taken
+    
+    if (placement) {
+        setPerfectTargetId(placement.id); // Highlight the perfect spot
+        
+        // If the perfect spot is empty, place the product there.
+        if (!placement.productId) {
+            setProducts(prev => [...prev, newProduct]);
+            setWarehouse(prev => {
+                if (!prev) return null;
+                const newCells = prev.cells.map(c => {
+                    if (c.id === placement.id) return { ...c, productId: newProduct.id };
+                    return c;
+                });
+                return { ...prev, cells: newCells };
+            });
+            // Select the cell where the product was just placed.
+            setSelectedCell({ ...placement, productId: newProduct.id });
+        } else {
+            // If the perfect spot is taken, just suggest it and don't place the product.
+            setProducts(prev => [...prev, newProduct]); // Still add to product list
+            setSelectedCell(null); // Don't select any cell.
+        }
     }
   };
 
@@ -140,8 +156,9 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     const productToMove = getProductById(fromCell.productId);
     if (!productToMove) return;
 
-    // This is the "perfect" spot, regardless of if it's occupied.
-    const perfectTargetCell = findOptimalPlacement(productToMove);
+    // This is the "perfect" spot, constrained to the same row for moves.
+    const perfectTargetCell = findOptimalPlacement(productToMove, fromCell.row);
+    setPerfectTargetId(perfectTargetCell?.id || null);
 
     const emptyCells = warehouse.cells.filter(c => c.productId === null);
 
@@ -166,7 +183,6 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     setMovingProduct({ 
       fromCell, 
       possibleTargets: targets,
-      perfectTargetId: perfectTargetCell?.id || null 
     });
     setSelectedCell(null);
     setSuggestedCellId(null);
@@ -175,6 +191,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const cancelMove = () => {
     setMovingProduct(null);
     setSelectedCell(null);
+    setPerfectTargetId(null);
   };
 
   const executeMove = (toCell: Cell) => {
@@ -193,6 +210,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     });
 
     setMovingProduct(null);
+    setPerfectTargetId(null);
     setSelectedCell({...toCell, productId: fromCell.productId});
   };
 
@@ -203,6 +221,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     settings,
     selectedCell,
     suggestedCellId,
+    perfectTargetId,
     movingProduct,
     loading,
     error,

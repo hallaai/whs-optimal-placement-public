@@ -19,7 +19,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
     selectedCell,
     getProductById,
     warehouse,
-    suggestedCellId,
+    perfectTargetId,
     movingProduct,
     executeMove,
   } = useWarehouse();
@@ -48,11 +48,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
   
   const isSelected = selectedCell?.id === cell.id;
   
-  // A cell is "suggested" if it's the target for a new product, OR the optimal target for a move.
-  const isSuggestedForNewProduct = suggestedCellId === cell.id && !movingProduct;
-  const isPerfectMoveTarget = movingProduct?.perfectTargetId === cell.id;
-  const isSuggested = isSuggestedForNewProduct || isPerfectMoveTarget;
-
+  const isPerfectTarget = perfectTargetId === cell.id;
 
   const moveTargetInfo = movingProduct?.possibleTargets.find(t => t.id === cell.id);
   const isMoveTarget = !!moveTargetInfo;
@@ -83,14 +79,14 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
       ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
   } else if (isSelected && !movingProduct) {
       ringClass = "ring-2 ring-offset-2 ring-primary z-10 scale-105";
-  } else if (isSuggestedForNewProduct && !product) {
+  } else if (isPerfectTarget && !product) {
       // Flash empty suggested cells for new products
       ringClass = "ring-2 ring-offset-2 ring-amber-400 z-10 scale-105";
       animationClass = 'animation-flash';
   }
 
   const canBeClicked = isMoveTarget || !movingProduct;
-  const isDimmed = movingProduct && !isMoveTarget && !isMoveOrigin && !isPerfectMoveTarget;
+  const isDimmed = movingProduct && !isMoveTarget && !isMoveOrigin && !isPerfectTarget;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -118,7 +114,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
                 style={{ transform: `scaleY(${fillPercentage})`, transformOrigin: 'bottom' }}
               />
             </div>
-            {isSuggested && (
+            {isPerfectTarget && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <Star className="h-2/3 w-2/3 text-yellow-400/80 fill-yellow-300/50" strokeWidth={1.5} />
                 </div>
@@ -136,7 +132,7 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             ) : (
               <p>Empty</p>
             )}
-            {isSuggested && <p className="font-bold text-yellow-500">Optimal Location</p>}
+            {isPerfectTarget && <p className="font-bold text-yellow-500">Optimal Location</p>}
             {moveTargetInfo && <p className="font-bold text-blue-600 dark:text-blue-400">Zone {moveTargetInfo.zone} Target</p>}
           </div>
         </TooltipContent>
