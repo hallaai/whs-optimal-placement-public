@@ -26,17 +26,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-const newProductSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
-  volume: z.coerce.number().min(1, "Volume must be positive").max(100, "Volume cannot exceed cell capacity"),
-});
-
 interface ControlPanelProps {
   activeLevel: number;
 }
 
 export function ControlPanel({ activeLevel }: ControlPanelProps) {
   const {
+    warehouse,
     settings,
     setSettings,
     addProduct,
@@ -48,6 +44,13 @@ export function ControlPanel({ activeLevel }: ControlPanelProps) {
     optimizeFloor
   } = useWarehouse();
   const { toast } = useToast()
+
+  const cellCapacity = warehouse?.cellCapacity ?? 100;
+
+  const newProductSchema = z.object({
+    name: z.string().min(3, "Name must be at least 3 characters"),
+    volume: z.coerce.number().min(1, "Volume must be positive").max(cellCapacity, `Volume cannot exceed cell capacity of ${cellCapacity}`),
+  });
 
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm({
     resolver: zodResolver(newProductSchema),
@@ -75,8 +78,6 @@ export function ControlPanel({ activeLevel }: ControlPanelProps) {
 
   return (
     <div className="h-full bg-sidebar flex flex-col">
-      <div className="p-4 border-b lg:border-b-0">
-      </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {movingProduct ? (
             <Card className="bg-primary/10 border-primary shadow-lg">
