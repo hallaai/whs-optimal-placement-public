@@ -40,3 +40,32 @@
 
 - **Interactive Presentation:**
   Explore an engaging HTML presentation at [`src/app/presentation/page.tsx`](/src/app/presentation/page.tsx) that walks you through the application's features and workflow.
+
+
+## Zone Planning:
+It is possible to divide warehouse into different ABC zones for grouping (clustering) products with different scores.
+![Mosaic Around Gates](/public/mosaic-tile-aroundgates.png)
+![Mosaic Tiles centered](/public/mosaic-tile-central.png)
+![Mosaic tiles lines](/public/mosaic-tile-lines.png)
+
+- It also produces json with tiles coordinates and color:
+``` {json}
+{
+  "grid": [
+    {
+      "x": 0,
+      "y": 0,
+      "color": "#C85A5A"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "color": "#5A8A5A"
+    }
+  ],
+  "dimensions": {
+    "width": 8,
+    "height": 8
+  }
+}
+```
