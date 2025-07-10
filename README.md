@@ -43,7 +43,7 @@
 
 
 ## Zone Planning:
-It is possible to divide warehouse into different ABC zones for grouping (clustering) products with different scores.
+It is possible to divide warehouse into different ABC zones for grouping (clustering) products with different scores. <br>
 ![Mosaic Around Gates](/public/mosaic-tile-aroundgates.png)
 ![Mosaic Tiles centered](/public/mosaic-tile-central.png)
 ![Mosaic tiles lines](/public/mosaic-tile-lines.png)
