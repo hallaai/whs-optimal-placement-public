@@ -45,7 +45,7 @@ export function ControlPanel({ activeLevel }: ControlPanelProps) {
   } = useWarehouse();
   const { toast } = useToast()
 
-  const cellCapacity = warehouse?.cellCapacity ?? 100;
+  const cellCapacity = warehouse?.cellCapacity ?? 1000;
 
   const newProductSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters"),

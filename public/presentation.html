@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Navigator - How It Works</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .slide {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .slide.active {
+            display: grid;
+            opacity: 1;
+        }
+        .slide-content {
+            animation: slide-up 0.6s ease-out forwards;
+        }
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .progress-bar {
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen text-slate-800 p-4 relative">
+
+    <div id="presentation-container" class="w-full max-w-5xl bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <header class="p-4 flex justify-between items-center border-b border-slate-200">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <h1 class="text-xl font-bold text-slate-800">
+                    Warehouse <span class="text-blue-600">Navigator</span>
+                </h1>
+            </div>
+            <a href="/" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.5a2 2 0 0 1 2.582 0l7 5.5A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+                Back to App
+            </a>
+        </header>
+
+        <main class="flex-1 p-8 md:p-12">
+            <!-- Slide 1: Welcome -->
+            <div id="slide-1" class="slide active md:grid-cols-2 gap-8 items-center">
+                <div class="slide-content space-y-4">
+                    <div class="p-3 bg-blue-100 rounded-full w-fit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M6 20h0a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h0"/><path d="M6 12h12"/><path d="M12 6v14"/></svg>
+                    </div>
+                    <h2 class="text-4xl font-extrabold tracking-tight">The Problem of Warehouse Inefficiency</h2>
+                    <p class="text-slate-600 text-lg">
+                        Disorganized warehouses lead to wasted time, increased labor costs, and slower fulfillment. Finding items or making space becomes a daily struggle. This is where smart placement becomes a game-changer.
+                    </p>
+                </div>
+                <div class="hidden md:block">
+                    <img src="https://placehold.co/600x400" alt="Warehouse visualization" data-ai-hint="warehouse chaos" class="rounded-lg shadow-lg">
+                </div>
+            </div>
+
+            <!-- Slide 2: Core Logic -->
+            <div id="slide-2" class="slide md:grid-cols-2 gap-8 items-center">
+                <div class="slide-content space-y-4">
+                    <div class="p-3 bg-blue-100 rounded-full w-fit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="m12 12-2 5h4l-2 5"/><path d="M12 12v-2"/></svg>
+                    </div>
+                    <h2 class="text-4xl font-extrabold tracking-tight">Logic: Volume-Based Placement</h2>
+                    <p class="text-slate-600 text-lg">
+                        The core principle is simple: **high-volume products belong closer to the loading gates**. Warehouse Navigator's algorithm analyzes each product's volume to calculate its ideal row, minimizing travel time for your most frequently moved items.
+                    </p>
+                    <ul class="space-y-2 text-slate-600">
+                        <li class="flex items-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-blue-500 mt-1 shrink-0"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span><span class="font-semibold">High Volume:</span> Placed in lower rows (e.g., Row 1-3) for quick access.</span></li>
+                        <li class="flex items-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-blue-500 mt-1 shrink-0"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span><span class="font-semibold">Low Volume:</span> Stored in higher rows, further from the gates.</span></li>
+                    </ul>
+                </div>
+                 <div class="hidden md:block">
+                    <img src="https://placehold.co/600x400" alt="Flow optimization diagram" data-ai-hint="flowchart arrows" class="rounded-lg shadow-lg">
+                </div>
+            </div>
+
+            <!-- Slide 3: Features -->
+            <div id="slide-3" class="slide md:grid-cols-2 gap-8 items-center">
+                <div class="slide-content space-y-4">
+                    <div class="p-3 bg-blue-100 rounded-full w-fit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <h2 class="text-4xl font-extrabold tracking-tight">Key Features</h2>
+                     <ul class="space-y-3 text-slate-600">
+                        <li class="flex items-start gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-500 shrink-0 mt-1"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><span><span class="font-semibold block">Interactive Map:</span> A color-coded grid for at-a-glance capacity management.</span></li>
+                        <li class="flex items-start gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-500 shrink-0 mt-1"><path d="m12 3-1.41 1.41L16.17 10H4v2h12.17l-5.58 5.59L12 19l8-8-8-8z"/></svg><span><span class="font-semibold block">Intelligent Moves:</span> When you move a product, the app highlights the *ideal* cell with a star and suggests nearby empty cells in color-coded zones.</span></li>
+                        <li class="flex items-start gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-500 shrink-0 mt-1"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span><span class="font-semibold block">Floor Optimization:</span> A one-click button to rearrange an entire floor to its perfect state.</span></li>
+                     </ul>
+                </div>
+                <div class="hidden md:block">
+                    <img src="https://placehold.co/600x400" alt="App features" data-ai-hint="dashboard UI" class="rounded-lg shadow-lg">
+                </div>
+            </div>
+            
+             <!-- Slide 4: Get Started -->
+            <div id="slide-4" class="slide md:grid-cols-2 gap-8 items-center">
+                <div class="slide-content space-y-6 text-center flex flex-col items-center justify-center">
+                    <div class="p-4 bg-blue-100 rounded-full w-fit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M15 9l-6 6"/><path d="m9 9 6 6"/></svg>
+                    </div>
+                    <h2 class="text-4xl font-extrabold tracking-tight">Ready to Optimize?</h2>
+                    <p class="text-slate-600 text-lg max-w-md mx-auto">
+                        Jump back into the app and start organizing. Add new products, move existing ones, and use the optimization tools to build a more efficient warehouse.
+                    </p>
+                    <a href="/" class="inline-block bg-blue-600 text-white font-semibold rounded-lg px-8 py-3 hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        Open Warehouse Navigator
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center justify-center">
+                    <img src="https://placehold.co/600x400" alt="Trophy" data-ai-hint="trophy success" class="rounded-lg shadow-lg">
+                </div>
+            </div>
+
+        </main>
+        
+        <footer class="p-4 border-t border-slate-200">
+            <div class="flex justify-between items-center">
+                <div id="progress-container" class="w-full bg-slate-200 rounded-full h-2.5 mr-4">
+                    <div id="progress-bar" class="progress-bar bg-blue-600 h-2.5 rounded-full"></div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="prev-btn" class="p-2 rounded-full bg-white hover:bg-slate-100 border border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <button id="next-btn" class="p-2 rounded-full bg-white hover:bg-slate-100 border border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            const progressPercentage = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+        }
+
+        function showNextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function showPrevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        nextBtn.addEventListener('click', showNextSlide);
+        prevBtn.addEventListener('click', showPrevSlide);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                showNextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                showPrevSlide();
+            }
+        });
+
+        updateSlide();
+    });
+</script>
+
+</body>
+</html>
