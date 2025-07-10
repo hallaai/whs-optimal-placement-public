@@ -76,7 +76,6 @@ export function ControlPanel({ activeLevel }: ControlPanelProps) {
   return (
     <div className="h-full bg-sidebar flex flex-col">
       <div className="p-4 border-b lg:border-b-0">
-        <h2 className="text-lg font-semibold hidden lg:block">Controls</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {movingProduct ? (
