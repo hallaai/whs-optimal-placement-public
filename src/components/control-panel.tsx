@@ -12,15 +12,30 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
-import { Package, PlusCircle, Move, XCircle, Info, Settings } from 'lucide-react';
+import { Package, PlusCircle, Move, XCircle, Info, Settings, Wand } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const newProductSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   volume: z.coerce.number().min(1, "Volume must be positive").max(100, "Volume cannot exceed cell capacity"),
 });
 
-export function ControlPanel() {
+interface ControlPanelProps {
+  activeLevel: number;
+}
+
+export function ControlPanel({ activeLevel }: ControlPanelProps) {
   const {
     settings,
     setSettings,
@@ -29,7 +44,8 @@ export function ControlPanel() {
     getProductById,
     startMove,
     movingProduct,
-    cancelMove
+    cancelMove,
+    optimizeFloor
   } = useWarehouse();
   const { toast } = useToast()
 
@@ -47,6 +63,14 @@ export function ControlPanel() {
     reset();
   };
   
+  const handleOptimizeFloor = () => {
+    optimizeFloor(activeLevel);
+    toast({
+        title: `Floor ${activeLevel + 1} Optimized`,
+        description: "All products on the current floor have been rearranged to their optimal positions.",
+    });
+  }
+
   const selectedProduct = getProductById(selectedCell?.productId ?? null);
 
   return (
@@ -132,6 +156,36 @@ export function ControlPanel() {
             </AccordionContent>
           </AccordionItem>
           
+          <AccordionItem value="optimization">
+            <AccordionTrigger className="text-base font-medium">
+                <div className="flex items-center gap-2"><Wand className="h-5 w-5" /> Optimization</div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2">
+                 <p className="text-sm text-muted-foreground">
+                    Automatically rearrange all products on the current floor to their ideal locations. This assumes unlimited moves are possible.
+                 </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="w-full">Optimize Current Floor</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will rearrange all products on Level {activeLevel + 1}. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleOptimizeFloor}>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="settings">
             <AccordionTrigger className="text-base font-medium">
                 <div className="flex items-center gap-2"><Settings className="h-5 w-5" /> Settings</div>

@@ -26,6 +26,7 @@ interface WarehouseContextType {
   cancelMove: () => void;
   getProductById: (id: string | null) => Product | undefined;
   getCellByProduct: (productId: string) => Cell | undefined;
+  optimizeFloor: (level: number) => void;
 }
 
 const WarehouseContext = createContext<WarehouseContextType | undefined>(undefined);
@@ -228,6 +229,58 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     setSelectedCell({...toCell, productId: fromCell.productId});
   };
 
+  const optimizeFloor = (level: number) => {
+    if (!warehouse) return;
+
+    // 1. Get all products on the specified level
+    const productsOnLevel = warehouse.cells
+      .filter(cell => cell.level === level && cell.productId)
+      .map(cell => getProductById(cell.productId))
+      .filter((p): p is Product => p !== undefined)
+      .sort((a,b) => b.volume - a.volume); // Sort by volume descending
+
+    // 2. Get all cells on that level
+    const cellsOnLevel = warehouse.cells
+        .filter(cell => cell.level === level)
+        .sort((a,b) => {
+             const scoreA = (a.row * 1000) + a.column;
+             const scoreB = (b.row * 1000) + b.column;
+             return scoreA - scoreB;
+        });
+
+
+    // 3. Create a new mapping of product to cell
+    const newProductMapping = new Map<string, string | null>(); // Map<cellId, productId>
+
+    productsOnLevel.forEach((product, index) => {
+      if (index < cellsOnLevel.length) {
+        newProductMapping.set(cellsOnLevel[index].id, product.id);
+      }
+    });
+
+    // 4. Update the warehouse state
+    setWarehouse(prev => {
+      if (!prev) return null;
+      
+      const newCells = prev.cells.map(cell => {
+        // Only modify cells on the target level
+        if (cell.level !== level) {
+          return cell;
+        }
+
+        const newProductId = newProductMapping.get(cell.id) || null;
+        return { ...cell, productId: newProductId };
+      });
+
+      return { ...prev, cells: newCells };
+    });
+    
+    // Reset selections
+    setSelectedCell(null);
+    setMovingProduct(null);
+    setPerfectTargetId(null);
+  }
+
   const value = {
     warehouse,
     cells: warehouse?.cells ?? [],
@@ -247,6 +300,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     cancelMove,
     getProductById,
     getCellByProduct,
+    optimizeFloor,
   };
 
   return <WarehouseContext.Provider value={value}>{children}</WarehouseContext.Provider>;

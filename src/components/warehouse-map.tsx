@@ -1,16 +1,19 @@
 "use client"
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useWarehouse } from '@/contexts/warehouse-context';
 import { WarehouseCell } from './warehouse-cell';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Layers, Truck } from 'lucide-react';
-import { Cell } from '@/lib/types';
 
-export function WarehouseMap() {
+interface WarehouseMapProps {
+  activeLevel: number;
+  setActiveLevel: (level: number) => void;
+}
+
+export function WarehouseMap({ activeLevel, setActiveLevel }: WarehouseMapProps) {
   const { warehouse } = useWarehouse();
-  const [activeLevel, setActiveLevel] = useState("level-0");
 
   if (!warehouse) {
     return (
@@ -38,9 +41,14 @@ export function WarehouseMap() {
       });
   };
 
+  const handleTabChange = (value: string) => {
+    const level = parseInt(value.replace('level-', ''), 10);
+    setActiveLevel(level);
+  };
+
   return (
     <div className="p-4 md:p-8 h-full flex flex-col">
-       <Tabs value={activeLevel} onValueChange={setActiveLevel} className="flex flex-col h-full">
+       <Tabs value={`level-${activeLevel}`} onValueChange={handleTabChange} className="flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
            <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Layers className="h-6 w-6 text-primary"/>
