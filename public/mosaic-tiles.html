@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosaic Tile Editor</title>
+    <style>
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            min-height: 100vh; /* min-h-screen */
+        }
+        .container {
+            padding: 1.5rem; /* p-6 */
+            background-color: #f3f4f6; /* bg-gray-100 */
+            min-height: 100vh; /* min-h-screen */
+        }
+        .header {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            text-align: center; /* text-center */
+            margin-bottom: 1.5rem; /* mb-6 */
+            color: #1f2937; /* text-gray-800 */
+        }
+        .main-content {
+            max-width: 56rem; /* max-w-4xl */
+            margin-left: auto; /* mx-auto */
+            margin-right: auto; /* mx-auto */
+        }
+        .controls-panel {
+            margin-bottom: 1.5rem; /* mb-6 */
+            background-color: #fff; /* bg-white */
+            padding: 1rem; /* p-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem; /* gap-4 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem; /* gap-2 */
+        }
+        .color-button {
+            width: 2rem; /* w-8 */
+            height: 2rem; /* h-8 */
+            border-radius: 9999px; /* rounded-full */
+            border-width: 2px; /* border-2 */
+            transition: all 0.15s ease-in-out; /* transition-all */
+            cursor: pointer;
+        }
+        .color-button.selected {
+            border-color: #1f2937; /* border-gray-800 */
+            transform: scale(1.1); /* scale-110 */
+        }
+        .color-button:not(.selected):hover {
+            border-color: #6b7280; /* hover:border-gray-500 */
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem; /* gap-2 */
+        }
+        .action-button {
+            padding: 0.5rem 1rem; /* px-4 py-2 */
+            color: #fff;
+            border-radius: 0.25rem; /* rounded */
+            transition: background-color 0.15s ease-in-out; /* transition-colors */
+            cursor: pointer;
+        }
+        .action-button.blue {
+            background-color: #3b82f6; /* bg-blue-500 */
+        }
+        .action-button.blue:hover:not(:disabled) {
+            background-color: #2563eb; /* hover:bg-blue-600 */
+        }
+        .action-button.gray {
+            background-color: #6b7280; /* bg-gray-500 */
+        }
+        .action-button.gray:hover:not(:disabled) {
+            background-color: #4b5563; /* hover:bg-gray-600 */
+        }
+        .action-button.green {
+            background-color: #22c55e; /* bg-green-500 */
+        }
+        .action-button.green:hover:not(:disabled) {
+            background-color: #16a34a; /* hover:bg-green-600 */
+        }
+        .action-button.purple {
+            background-color: #a855f7; /* bg-purple-500 */
+        }
+        .action-button.purple:hover:not(:disabled) {
+            background-color: #9333ea; /* hover:bg-purple-600 */
+        }
+        .action-button:disabled {
+            background-color: #d1d5db; /* disabled:bg-gray-300 */
+            cursor: not-allowed;
+        }
+        .info-text {
+            font-size: 0.875rem; /* text-sm */
+            color: #4b5563; /* text-gray-600 */
+        }
+        .mosaic-grid-wrapper {
+            padding: 1rem; /* p-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #808080; /* Border color */
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 0.25rem; /* gap-1 */
+        }
+        .tile {
+            width: 3rem; /* w-12 */
+            height: 3rem; /* h-12 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out; /* transition-all */
+        }
+        .tile:hover {
+            opacity: 0.8; /* hover:opacity-80 */
+        }
+        .tile.selected {
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.8); /* ring-4 ring-yellow-400 ring-opacity-80 */
+            transform: scale(1.05); /* scale-105 */
+        }
+        .selected-tiles-info {
+            margin-top: 1.5rem; /* mt-6 */
+            background-color: #fff; /* bg-white */
+            padding: 1rem; /* p-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .selected-tiles-info h3 {
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .selected-tiles-list {
+            font-size: 0.875rem; /* text-sm */
+            color: #4b5563; /* text-gray-600 */
+            max-height: 8rem; /* max-h-32 */
+            overflow-y: auto;
+        }
+        .selected-tile-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* gap-2 */
+            margin-bottom: 0.25rem; /* mb-1 */
+        }
+        .selected-tile-color-box {
+            width: 1rem; /* w-4 */
+            height: 1rem; /* h-4 */
+            border-radius: 0.125rem; /* rounded */
+            border: 1px solid #d1d5db; /* border */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">Mosaic Tile Editor</h1>
+        
+        <div class="main-content">
+            <!-- Controls -->
+            <div class="controls-panel">
+                <div class="flex-row">
+                    <div class="color-palette" id="colorPalette">
+                        <!-- Color buttons will be rendered here by JS -->
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="applyColorBtn" class="action-button blue">
+                            Apply Color (0 selected)
+                        </button>
+                        
+                        <button id="clearSelectionBtn" class="action-button gray">
+                            Clear Selection
+                        </button>
+                        
+                        <button id="exportJSONBtn" class="action-button green">
+                            Export JSON
+                        </button>
+                        
+                        <button id="downloadImageBtn" class="action-button purple">
+                            Download Image
+                        </button>
+                        
+                        <!-- Add rotation buttons -->
+                        <button id="rotateLeftBtn" class="action-button gray" title="Rotate Left (⟲)">⟲</button>
+                        <button id="rotateRightBtn" class="action-button gray" title="Rotate Right (⟳)">⟳</button>
+                    </div>
+                </div>
+                
+                <p class="info-text">
+                    Click tiles to select them. Hold Shift/Ctrl/Cmd to select multiple tiles.
+                </p>
+            </div>
+
+            <!-- Mosaic Grid -->
+            <div class="mosaic-grid-wrapper">
+                <div class="grid-container" id="mosaicGrid">
+                    <!-- Grid tiles will be rendered here by JS -->
+                </div>
+            </div>
+
+            <!-- Selected Tiles Info -->
+            <div id="selectedTilesInfo" class="selected-tiles-info" style="display: none;">
+                <h3 class="font-semibold mb-2">Selected Tiles (<span id="selectedTilesCount">0</span>):</h3>
+                <div class="selected-tiles-list" id="selectedTilesList">
+                    <!-- Selected tiles info will be rendered here by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let grid = [];
+        let selectedColor = '#C85A5A'; // Default selected color
+
+        const colors = [
+            '#C85A5A', // Red
+            '#5A8A5A', // Green
+            '#B8A842', // Yellow/Gold
+            '#4A90E2', // Blue
+            '#9B59B6', // Purple
+            '#E67E22', // Orange
+            '#2ECC71', // Emerald
+            '#F39C12', // Amber
+            '#34495E', // Dark Gray
+            '#ECF0F1'  // Light Gray
+        ];
+
+        // DOM elements
+        const colorPaletteDiv = document.getElementById('colorPalette');
+        const mosaicGridDiv = document.getElementById('mosaicGrid');
+        const applyColorBtn = document.getElementById('applyColorBtn');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+        const exportJSONBtn = document.getElementById('exportJSONBtn');
+        const downloadImageBtn = document.getElementById('downloadImageBtn');
+        const selectedTilesInfoDiv = document.getElementById('selectedTilesInfo');
+        const selectedTilesCountSpan = document.getElementById('selectedTilesCount');
+        const selectedTilesListDiv = document.getElementById('selectedTilesList');
+
+        // --- Initialization ---
+        const initializeGrid = () => {
+            const newGrid = [];
+            for (let row = 0; row < 8; row++) {
+                const gridRow = [];
+                for (let col = 0; col < 8; col++) {
+                    let color;
+                    if (row === 0) {
+                        color = '#C85A5A'; // Red/brick color
+                    } else if (row === 1) {
+                        if (col < 4) color = '#B8A842'; // Yellow/gold
+                        else color = '#C85A5A'; // Red
+                    } else if (row >= 2 && row <= 6) {
+                        if (col < 2) color = '#5A8A5A'; // Green
+                        else if (col < 4) color = '#B8A842'; // Yellow/gold
+                        else color = '#C85A5A'; // Red
+                    } else if (row === 7) {
+                        color = '#C85A5A'; // Red
+                    }
+                    
+                    gridRow.push({
+                        x: col,
+                        y: row,
+                        color: color,
+                        selected: false
+                    });
+                }
+                newGrid.push(gridRow);
+            }
+            grid = newGrid;
+        };
+
+        // --- Rendering ---
+        const renderColorPalette = () => {
+            colorPaletteDiv.innerHTML = '';
+            colors.forEach(color => {
+                const button = document.createElement('button');
+                button.className = `color-button ${selectedColor === color ? 'selected' : ''}`;
+                button.style.backgroundColor = color;
+                button.title = `Select ${color}`;
+                button.onclick = () => {
+                    selectedColor = color;
+                    renderColorPalette(); // Re-render to update active state
+                };
+                colorPaletteDiv.appendChild(button);
+            });
+        };
+
+        const renderMosaicGrid = () => {
+            mosaicGridDiv.innerHTML = '';
+            grid.forEach((row, rowIndex) => {
+                row.forEach((tile, colIndex) => {
+                    const tileDiv = document.createElement('div');
+                    tileDiv.className = `tile ${tile.selected ? 'selected' : ''}`;
+                    tileDiv.style.backgroundColor = tile.color;
+                    tileDiv.title = `Tile (${colIndex}, ${rowIndex}) - ${tile.color}`;
+                    tileDiv.onclick = (e) => handleTileClick(rowIndex, colIndex, e);
+                    mosaicGridDiv.appendChild(tileDiv);
+                });
+            });
+            updateSelectedTilesInfo();
+        };
+
+        const updateSelectedTilesInfo = () => {
+            const selectedTiles = getSelectedTiles();
+            selectedTilesCountSpan.textContent = selectedTiles.length;
+            applyColorBtn.textContent = `Apply Color (${selectedTiles.length} selected)`;
+            applyColorBtn.disabled = selectedTiles.length === 0;
+
+            selectedTilesListDiv.innerHTML = '';
+            if (selectedTiles.length > 0) {
+                selectedTilesInfoDiv.style.display = 'block';
+                selectedTiles.forEach((tile, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'selected-tile-item';
+                    itemDiv.innerHTML = `
+                        <div class="selected-tile-color-box" style="background-color: ${tile.color};"></div>
+                        <span>(${tile.x}, ${tile.y}) - ${tile.color}</span>
+                    `;
+                    selectedTilesListDiv.appendChild(itemDiv);
+                });
+            } else {
+                selectedTilesInfoDiv.style.display = 'none';
+            }
+        };
+
+        // --- Event Handlers ---
+        const handleTileClick = (rowIndex, colIndex, event) => {
+            if (event.shiftKey || event.ctrlKey || event.metaKey) {
+                // Multi-select mode
+                grid[rowIndex][colIndex].selected = !grid[rowIndex][colIndex].selected;
+            } else {
+                // Single select mode
+                grid.forEach(row => row.forEach(tile => tile.selected = false));
+                grid[rowIndex][colIndex].selected = true;
+            }
+            renderMosaicGrid(); // Re-render the grid to reflect selection changes
+        };
+
+        const handleApplyColor = () => {
+            grid.forEach(row => {
+                row.forEach(tile => {
+                    if (tile.selected) {
+                        tile.color = selectedColor;
+                    }
+                });
+            });
+            renderMosaicGrid();
+        };
+
+        const handleClearSelection = () => {
+            grid.forEach(row => row.forEach(tile => tile.selected = false));
+            renderMosaicGrid();
+        };
+
+        const getSelectedTiles = () => {
+            const selected = [];
+            grid.forEach((row, rowIndex) => {
+                row.forEach((tile, colIndex) => {
+                    if (tile.selected) {
+                        selected.push({
+                            x: colIndex,
+                            y: rowIndex,
+                            color: tile.color
+                        });
+                    }
+                });
+            });
+            return selected;
+        };
+
+        const handleExportToJSON = () => {
+            const allTiles = [];
+            grid.forEach((row, rowIndex) => {
+                row.forEach((tile, colIndex) => {
+                    allTiles.push({
+                        x: colIndex,
+                        y: rowIndex,
+                        color: tile.color
+                    });
+                });
+            });
+            
+            const jsonData = {
+                grid: allTiles,
+                dimensions: { width: 8, height: 8 }
+            };
+            
+            console.log('Mosaic Data:', JSON.stringify(jsonData, null, 2));
+            
+            navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2))
+                .then(() => alert('Mosaic data copied to clipboard!'))
+                .catch(err => console.error('Failed to copy: ', err));
+        };
+
+        const handleDownloadImage = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const tileSize = 48;
+            const gap = 4;
+            const padding = 16;
+            const canvasSize = (tileSize * 8) + (gap * 7) + (padding * 2);
+            
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            
+            ctx.fillStyle = '#808080'; // Border color
+            ctx.fillRect(0, 0, canvasSize, canvasSize);
+            
+            grid.forEach((row, rowIndex) => {
+                row.forEach((tile, colIndex) => {
+                    const x = padding + (colIndex * (tileSize + gap));
+                    const y = padding + (rowIndex * (tileSize + gap));
+                    
+                    ctx.fillStyle = tile.color;
+                    ctx.fillRect(x, y, tileSize, tileSize);
+                });
+            });
+            
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'mosaic-tile-pattern.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        };
+
+        // --- Rotation Logic ---
+        const rotateGridLeft = () => {
+            // 90 deg left: newGrid[y][x] = grid[x][N-1-y]
+            const N = grid.length;
+            const M = grid[0].length;
+            const newGrid = [];
+            for (let col = M - 1; col >= 0; col--) {
+                const newRow = [];
+                for (let row = 0; row < N; row++) {
+                    // Deep copy tile and update coordinates
+                    const oldTile = grid[row][col];
+                    newRow.push({
+                        ...oldTile,
+                        x: M - 1 - col,
+                        y: row
+                    });
+                }
+                newGrid.push(newRow);
+            }
+            // Transpose to keep grid[y][x] structure
+            grid = newGrid;
+            // Fix x/y for all tiles
+            grid.forEach((row, y) => row.forEach((tile, x) => { tile.x = x; tile.y = y; }));
+            renderMosaicGrid();
+        };
+
+        const rotateGridRight = () => {
+            // 90 deg right: newGrid[y][x] = grid[N-1-x][y]
+            const N = grid.length;
+            const M = grid[0].length;
+            const newGrid = [];
+            for (let col = 0; col < M; col++) {
+                const newRow = [];
+                for (let row = N - 1; row >= 0; row--) {
+                    // Deep copy tile and update coordinates
+                    const oldTile = grid[row][col];
+                    newRow.push({
+                        ...oldTile,
+                        x: col,
+                        y: N - 1 - row
+                    });
+                }
+                newGrid.push(newRow);
+            }
+            // Transpose to keep grid[y][x] structure
+            grid = newGrid;
+            // Fix x/y for all tiles
+            grid.forEach((row, y) => row.forEach((tile, x) => { tile.x = x; tile.y = y; }));
+            renderMosaicGrid();
+        };
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGrid();
+            renderColorPalette();
+            renderMosaicGrid();
+
+            // Attach event listeners to buttons
+            applyColorBtn.addEventListener('click', handleApplyColor);
+            clearSelectionBtn.addEventListener('click', handleClearSelection);
+            exportJSONBtn.addEventListener('click', handleExportToJSON);
+            downloadImageBtn.addEventListener('click', handleDownloadImage);
+            // Attach rotation button listeners
+            document.getElementById('rotateLeftBtn').addEventListener('click', rotateGridLeft);
+            document.getElementById('rotateRightBtn').addEventListener('click', rotateGridRight);
+        });
+    </script>
+</body>
+</html>
