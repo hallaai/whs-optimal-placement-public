@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { Cell, Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Package, Star } from 'lucide-react';
+import { Package, Star, Trophy } from 'lucide-react';
 
 interface WarehouseCellProps {
   cell: Cell;
@@ -116,7 +116,8 @@ export function WarehouseCell({ cell }: WarehouseCellProps) {
             </div>
             {isPerfectTarget && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <Star className="w-[300%] h-[300%] text-yellow-400/80 fill-yellow-300/50" strokeWidth={0.5} />
+                    <Star className="absolute w-[300%] h-[300%] text-yellow-400/80 fill-yellow-300/50" strokeWidth={0.5} />
+                    <Trophy className="relative h-1/2 w-1/2 text-amber-500 fill-amber-400" />
                 </div>
             )}
           </div>
